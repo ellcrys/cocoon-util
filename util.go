@@ -89,6 +89,61 @@ func GetGithubRepoRelease(repoURL, tag string) (string, error) {
 	return release["tarball_url"].(string), nil
 }
 
+// IsGithubCommitID is a convenience function to check if an string is a git commit ID
+func IsGithubCommitID(id string) bool {
+	return len(id) == 40
+}
+
+// IsExistingGithubRepo checks whether a github repo exists and is publicly available.
+func IsExistingGithubRepo(url string) bool {
+	err := util.DownloadURLToFunc(url, func(b []byte, code int) error {
+		if code != 200 {
+			return fmt.Errorf("not found")
+		}
+		return fmt.Errorf("ok")
+	})
+	if err != nil && err.Error() == "ok" {
+		return true
+	}
+	return false
+}
+
+// IsValidGithubRelease checks whether a release tag exist on a github repo
+func IsValidGithubRelease(repoURL, tag string) bool {
+	if !IsGithubRepoURL(repoURL) {
+		return false
+	}
+	url, _ := urlx.Parse(repoURL)
+	err := util.DownloadURLToFunc(fmt.Sprintf("https://api.github.com/repos%s/releases/tags/%s", url.Path, tag), func(b []byte, code int) error {
+		if code != 200 {
+			return fmt.Errorf("not found")
+		}
+		return fmt.Errorf("ok")
+	})
+	if err != nil && err.Error() == "ok" {
+		return true
+	}
+	return false
+}
+
+// IsValidGithubCommitID checks whether a commit id exist on a github repo
+func IsValidGithubCommitID(repoURL, sha string) bool {
+	if !IsGithubRepoURL(repoURL) {
+		return false
+	}
+	url, _ := urlx.Parse(repoURL)
+	err := util.DownloadURLToFunc(fmt.Sprintf("https://api.github.com/repos%s/commits/%s", url.Path, sha), func(b []byte, code int) error {
+		if code != 200 {
+			return fmt.Errorf("not found")
+		}
+		return fmt.Errorf("ok")
+	})
+	if err != nil && err.Error() == "ok" {
+		return true
+	}
+	return false
+}
+
 // DownloadFile downloads a remote file to a destination
 func DownloadFile(url, destFilename string, cb func([]byte)) error {
 

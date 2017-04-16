@@ -59,9 +59,46 @@ func TestUtil(t *testing.T) {
 			Convey("should successfully download a file", func() {
 				remoteURL := "https://api.github.com/repos/ncodes/cocoon-example-01/tarball/v0.0.2"
 				destFile := "/tmp/" + util.RandString(5) + ".tar.gz"
+				defer os.Remove(destFile)
 				DownloadFile(remoteURL, destFile, func(b []byte) {})
 				_, err := os.Stat(destFile)
 				So(err, ShouldNotEqual, os.ErrNotExist)
+			})
+		})
+
+		Convey(".IsGithubCommitID", func() {
+			Convey("should return true", func() {
+				So(IsGithubCommitID("351e11dac558a764ba83f89c6598151d2dbaf904"), ShouldEqual, true)
+			})
+			Convey("should return false", func() {
+				So(IsGithubCommitID("351e11dac558a764ba83"), ShouldEqual, false)
+			})
+		})
+
+		Convey(".IsExistingGithubRepo", func() {
+			Convey("should return true", func() {
+				So(IsExistingGithubRepo("https://github.com/ncodes/cocoon-example-01"), ShouldEqual, true)
+			})
+			Convey("should return false", func() {
+				So(IsExistingGithubRepo("https://github.com/ncodes/cocoon-example-10"), ShouldEqual, false)
+			})
+		})
+
+		Convey(".IsValidGithubRelease", func() {
+			Convey("should return true", func() {
+				So(IsValidGithubRelease("https://github.com/ncodes/cocoon-example-01", "v0.0.2"), ShouldEqual, true)
+			})
+			Convey("should return false", func() {
+				So(IsValidGithubRelease("https://github.com/ncodes/cocoon-example-01", "unknown"), ShouldEqual, false)
+			})
+		})
+
+		Convey(".IsValidGithubCommitID", func() {
+			Convey("should return true", func() {
+				So(IsValidGithubCommitID("https://github.com/ncodes/cocoon-example-01", "cdac5dbe22fb5ddc21850f3fd91d75422f712a4a"), ShouldEqual, true)
+			})
+			Convey("should return false", func() {
+				So(IsValidGithubCommitID("https://github.com/ncodes/cocoon-example-01", "unknown"), ShouldEqual, false)
 			})
 		})
 	})
